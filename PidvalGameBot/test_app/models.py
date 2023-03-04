@@ -31,24 +31,6 @@ class Player(models.Model):
         verbose_name = "Профіль гравця"
         verbose_name_plural = "Профілі гравців"
 
-
-# class Master(models.Model):
-#     master = models.ForeignKey(
-#         to='test_app.Player',
-#         verbose_name='Профіль гравця',
-#         on_delete=models.PROTECT,
-#     )
-#     hostage = models.ForeignKey(
-#         Player,
-#         verbose_name='Заручник',
-#         on_delete=models.CASCADE,
-#     )
-#
-#     class Meta:
-#         verbose_name = "Власник і заручник"
-#         verbose_name_plural = "Власники і заручники"
-
-
 class Message(models.Model):
     profile = models.ForeignKey(
         to='test_app.Player',
