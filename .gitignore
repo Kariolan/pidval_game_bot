@@ -1,0 +1,5 @@
+/.gitignor
+/PidvalGame/main.py
+/WeatherLockationBot/main.py
+/PidvalGame/models.py
+/PidvalGame/views.py
