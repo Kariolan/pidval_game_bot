@@ -51,3 +51,27 @@ class Message(models.Model):
     class Meta:
         verbose_name = 'Повідомлення'
         verbose_name_plural = 'Повідомлення'
+
+
+class Basement(models.Model):
+    id = models.PositiveIntegerField(
+        verbose_name="id",
+        unique=True,
+        primary_key=True,
+    )
+    master = models.OneToOneField(
+        'Player',
+        verbose_name="Master",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="%(class)s_master",
+    )
+    hostage = models.OneToOneField(
+        'Player',
+        verbose_name="Master",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="%(class)s_hostage",
+    )
