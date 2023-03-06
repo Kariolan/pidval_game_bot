@@ -92,7 +92,7 @@ def hostage(message):
             reply_text = f"Ти в підвалі цього гравця і не можеш закрити його/її свому підвалі"
             bot.reply_to(message, reply_text)
         else:
-            reply_text = f"Пробач :( але цей гравезь в вже в іншому підвалі"
+            reply_text = f"Пробач :( але цей гравець в вже в іншому підвалі"
             bot.reply_to(message, reply_text)
 
     except Exception as e:
