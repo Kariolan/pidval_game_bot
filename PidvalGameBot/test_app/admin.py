@@ -6,8 +6,11 @@ from .models import Message, Player, Basement, Stats, Item, Position, Decoration
 
 @admin.register(Player)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('id', 'external_id', 'name', 'hostage', 'basement', 'inventory', 'stats', 'hryvni')
+    list_display = ('id', 'external_id', 'name', 'hostage', 'basement', 'get_inventory', 'stats', 'hryvni')
     form = PlayerForm
+
+    def get_inventory(self, obj):
+        return "\n".join([p.inventory for p in obj.inventory.all()])
 
 
 @admin.register(Message)
@@ -17,7 +20,10 @@ class MessageAdmin(admin.ModelAdmin):
 
 @admin.register(Basement)
 class BasementAdmin(admin.ModelAdmin):
-    list_display = ('id', 'master', 'hostage', 'position')
+    list_display = ('id', 'master', 'hostage', 'get_position')
+
+    def get_position(self, obj):
+        return "\n".join([p.position for p in obj.position.all()])
 
 
 @admin.register(Stats)

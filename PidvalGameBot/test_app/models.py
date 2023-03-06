@@ -28,9 +28,6 @@ class Player(models.Model):
     inventory = models.ManyToManyField(
         'Item',
         verbose_name="Inventory",
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
     )
     stats = models.OneToOneField(
         'Stats',
@@ -38,7 +35,7 @@ class Player(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="%(class)_player",
+        related_name="%(class)s_player",
     )
     hryvni = models.IntegerField(
         verbose_name="Hryvni",
@@ -101,10 +98,7 @@ class Basement(models.Model):
     position = models.ManyToManyField(
         'Position',
         verbose_name="Position",
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="%(class)_in_basement",
+        related_name="%(class)s_in_basement",
     )
 
 
@@ -129,6 +123,7 @@ class Item(models.Model):
     )
     name = models.CharField(
         verbose_name="Name",
+        max_length=64,
     )
     type = models.ForeignKey(
         'Type',
@@ -136,7 +131,7 @@ class Item(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="Items_%(class)",
+        related_name="%(class)s_items",
     )
     description = models.TextField(
         verbose_name='Description'
@@ -151,6 +146,7 @@ class Position(models.Model):
     )
     name = models.CharField(
         verbose_name="Name",
+        max_length=64,
     )
     decoration = models.ForeignKey(
         'Decoration',
@@ -158,7 +154,7 @@ class Position(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="%(class)_on_position",
+        related_name="%(class)s_on_position",
     )
 
 
@@ -170,6 +166,7 @@ class Decoration(models.Model):
     )
     name = models.CharField(
         verbose_name="Name",
+        max_length=64,
     )
     type = models.ForeignKey(
         'Type',
@@ -177,7 +174,7 @@ class Decoration(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="Decorations_%(class)",
+        related_name="%(class)s_decorations",
     )
     description = models.TextField(
         verbose_name='Description'
@@ -192,6 +189,7 @@ class Event(models.Model):
     )
     name = models.CharField(
         verbose_name="Name",
+        max_length=64,
     )
     type = models.ForeignKey(
         'Type',
@@ -199,7 +197,7 @@ class Event(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        related_name="Events_%(class)",
+        related_name="%(class)s_events",
     )
     description = models.TextField(
         verbose_name='Description'
@@ -214,4 +212,5 @@ class Type(models.Model):
     )
     name = models.CharField(
         verbose_name="Name",
+        max_length=64,
     )
