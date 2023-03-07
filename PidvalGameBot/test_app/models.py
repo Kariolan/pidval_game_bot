@@ -10,18 +10,37 @@ class Player(models.Model):
     name = models.TextField(
         verbose_name="Ім'я гравця",
     )
-    # master = models.ForeignKey(
-    #     'Player',
-    #     verbose_name="Власник",
-    #     null=True,
-    #     on_delete=models.SET_NULL,
-    # )
     hostage = models.ForeignKey(
         'Player',
         verbose_name="Заручник",
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
+    )
+    basement = models.ForeignKey(
+        'Basement',
+        verbose_name="Basement",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="%(class)s_player",
+    )
+    inventory = models.ManyToManyField(
+        'Item',
+        verbose_name="Inventory",
+    )
+    stats = models.OneToOneField(
+        'Stats',
+        verbose_name="Stats",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="%(class)s_player",
+    )
+    hryvni = models.IntegerField(
+        verbose_name="Hryvni",
+        blank=True,
+        null=True,
     )
 
     def __str__(self):
@@ -30,6 +49,7 @@ class Player(models.Model):
     class Meta:
         verbose_name = "Профіль гравця"
         verbose_name_plural = "Профілі гравців"
+
 
 class Message(models.Model):
     profile = models.ForeignKey(
@@ -69,9 +89,128 @@ class Basement(models.Model):
     )
     hostage = models.OneToOneField(
         'Player',
-        verbose_name="Master",
+        verbose_name="Hostage",
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
         related_name="%(class)s_hostage",
+    )
+    position = models.ManyToManyField(
+        'Position',
+        verbose_name="Position",
+        related_name="%(class)s_in_basement",
+    )
+
+
+class Stats(models.Model):
+    hp = models.PositiveIntegerField(
+        verbose_name="HP",
+        blank=True,
+        null=True,
+    )
+    energy = models.PositiveIntegerField(
+        verbose_name="Energy",
+        blank=True,
+        null=True,
+    )
+
+
+class Item(models.Model):
+    id = models.PositiveIntegerField(
+        verbose_name="id",
+        unique=True,
+        primary_key=True,
+    )
+    name = models.CharField(
+        verbose_name="Name",
+        max_length=64,
+    )
+    type = models.ForeignKey(
+        'Type',
+        verbose_name="Type",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="%(class)s_items",
+    )
+    description = models.TextField(
+        verbose_name='Description'
+    )
+
+
+class Position(models.Model):
+    id = models.PositiveIntegerField(
+        verbose_name="id",
+        unique=True,
+        primary_key=True,
+    )
+    name = models.CharField(
+        verbose_name="Name",
+        max_length=64,
+    )
+    decoration = models.ForeignKey(
+        'Decoration',
+        verbose_name="Decoration",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="%(class)s_on_position",
+    )
+
+
+class Decoration(models.Model):
+    id = models.PositiveIntegerField(
+        verbose_name="id",
+        unique=True,
+        primary_key=True,
+    )
+    name = models.CharField(
+        verbose_name="Name",
+        max_length=64,
+    )
+    type = models.ForeignKey(
+        'Type',
+        verbose_name="Type",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="%(class)s_decorations",
+    )
+    description = models.TextField(
+        verbose_name='Description'
+    )
+
+
+class Event(models.Model):
+    id = models.PositiveIntegerField(
+        verbose_name="id",
+        unique=True,
+        primary_key=True,
+    )
+    name = models.CharField(
+        verbose_name="Name",
+        max_length=64,
+    )
+    type = models.ForeignKey(
+        'Type',
+        verbose_name="Type",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="%(class)s_events",
+    )
+    description = models.TextField(
+        verbose_name='Description'
+    )
+
+
+class Type(models.Model):
+    id = models.PositiveIntegerField(
+        verbose_name="id",
+        unique=True,
+        primary_key=True,
+    )
+    name = models.CharField(
+        verbose_name="Name",
+        max_length=64,
     )
