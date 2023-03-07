@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
 import telebot
+from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
 # from telegram import Bot
 # from telegram import Update
@@ -33,7 +34,22 @@ def send_welcome(message):
     /profile - перевірити свій профіль
     /count - переглянути кількість збережених повідомлень
     або просто написати, щось в бот (спробуй написати "Слава Україні! ;) )"
-    ''')
+    ''', reply_markup=gen_markup())
+
+def gen_markup():
+    markup = ReplyKeyboardMarkup()
+    markup.row_width = 2
+    markup.add(KeyboardButton("Поприбиратись"))
+    return markup
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    if call.data == "pgb_clean":
+        bot.send_message("You cleaned your room")
+
+# @bot.message_handler(func=lambda message: True)
+# def message_handler(message):
+#     bot.send_message(message.chat.id, "Шо?", reply_markup=gen_markup())
 
 
 @bot.message_handler(commands=['count'])
