@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .forms import PlayerForm
-from .models import Message, Player, Basement, Stats, Item, Position, Decoration, Event, Type
+from .models import * #Message, Player, Basement, Stats, Item, Position, Decoration, Event, Type
 
 
 @admin.register(Player)
@@ -54,3 +54,7 @@ class EventAdmin(admin.ModelAdmin):
 @admin.register(Type)
 class TypeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
+
+@admin.register(EventResult)
+class TypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'probability')

@@ -202,6 +202,12 @@ class Event(models.Model):
     description = models.TextField(
         verbose_name='Description'
     )
+    results = models.ManyToManyField(
+        'EventResult',
+        verbose_name="Results",
+        blank=True,
+        related_name="%(class)s_results",
+    )
 
 
 class Type(models.Model):
@@ -213,4 +219,20 @@ class Type(models.Model):
     name = models.CharField(
         verbose_name="Name",
         max_length=64,
+    )
+
+class EventResult(models.Model):
+    name = models.CharField(
+        verbose_name="Name",
+        max_length=64,
+    )
+    probability = models.FloatField(
+        verbose_name="Probability",
+    )
+    item = models.OneToOneField(
+        'Item',
+        verbose_name="Item Found",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
     )

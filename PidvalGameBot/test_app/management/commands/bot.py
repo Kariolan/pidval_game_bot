@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 import telebot
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+import random
 
 # from telegram import Bot
 # from telegram import Update
@@ -12,7 +13,7 @@ from telebot.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardBut
 # from telegram.ext import Updater
 # from telegram.utils.request import Request
 #
-from test_app.models import Player, Message
+from test_app.models import Player, Message, Event, EventResult
 
 bot = telebot.TeleBot(settings.TOKEN, parse_mode=None)
 
@@ -39,7 +40,9 @@ def send_welcome(message):
 def gen_markup():
     markup = ReplyKeyboardMarkup()
     markup.row_width = 2
-    markup.add(KeyboardButton("Поприбиратись"))
+    events = Event.objects.all()
+    for event in events:
+        markup.add(KeyboardButton(event.name))
     return markup
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -133,6 +136,16 @@ def echo_all(message):
 
     if text == 'Слава Україні!' or text == 'Слава Україні':
         bot.reply_to(message, 'Героям слава!')
+    elif text == 'Прибирання':
+        def predicate(event: Event):
+            return event.name == text
+        event: Event = next(filter(predicate, Event.objects.all()))
+
+        def mapRes(result: EventResult):
+            return result.probability
+        result: EventResult = random.choices(event.results.all(), weights=tuple(map(mapRes, event.results.all())), k=1)[0]
+
+        bot.send_message(chat_id, result.name)
     else:
         p, _ = Player.objects.get_or_create(
             external_id=chat_id,
