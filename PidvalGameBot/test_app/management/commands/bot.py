@@ -13,7 +13,7 @@ import random
 # from telegram.ext import Updater
 # from telegram.utils.request import Request
 #
-from test_app.models import Player, Message, Event, EventResult
+from test_app.models import Player, Message, Event, EventResult, Basement
 
 bot = telebot.TeleBot(settings.TOKEN, parse_mode=None)
 
@@ -28,6 +28,11 @@ def send_welcome(message):
             'name': message.from_user.username,
         }
     )
+    b = Basement.objects.get_or_create(
+        defaults={
+            'master': p,
+        }
+    )
 
     bot.send_message(chat_id, '''Ха-ха ти в підвалі версії alfa 0.1) 
     тут ти можеш:
@@ -37,6 +42,7 @@ def send_welcome(message):
     або просто написати, щось в бот (спробуй написати "Слава Україні! ;) )"
     ''', reply_markup=gen_markup())
 
+
 def gen_markup():
     markup = ReplyKeyboardMarkup()
     markup.row_width = 2
@@ -45,10 +51,12 @@ def gen_markup():
         markup.add(KeyboardButton(event.name))
     return markup
 
+
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     if call.data == "pgb_clean":
         bot.send_message("You cleaned your room")
+
 
 # @bot.message_handler(func=lambda message: True)
 # def message_handler(message):
@@ -71,15 +79,18 @@ def count_messages(message):
     bot.reply_to(message, reply_text)
 
 
-def player_hostage(player_name):
-    selected_player = Player.objects.filter(name=player_name).first()
-    h_player = selected_player.hostage
+def player_hostage(player: Player):
+    player_basement = player.basement
+    h_player = player_basement.hostage
     return h_player
 
 
-def player_master(hostage_name):
-    h_player = Player.objects.filter(name=hostage_name).first()
-    m_player = Player.objects.filter(hostage_id=h_player.pk).first()
+def player_master(hostage_player: Player):
+    basement_in_which_hostage = Basement.objects.filter(hostage_id=hostage_player.pk).first()
+    if basement_in_which_hostage == None:
+        m_player = None
+    else:
+        m_player = basement_in_which_hostage.master
     return m_player
 
 
@@ -93,16 +104,17 @@ def hostage(message):
     try:
         chat_id = message.chat.id
         h_name = message.text
-        hostage_master = player_master(h_name)
+        h_player = Player.objects.filter(name=h_name).first()
 
         p, _ = Player.objects.get_or_create(
             external_id=chat_id,
         )
+        b = p.basement
 
-        if hostage_master == None and h_name != p.name and p != player_hostage(h_name):
-            p.hostage = Player.objects.filter(name=h_name)[0]
-            p.save()
-            print(Player.objects.filter(name=h_name)[0])
+        if player_master(h_player) == None and h_name != p.name and p != h_player:
+            b.hostage = Player.objects.filter(name=h_name)[0]
+            b.save()
+            print(Basement.objects.filter(hostage_id=h_player.pk)[0])
             bot.send_message(chat_id, "Ти узяв в заручники " + h_name)
         elif h_name == p.name:
             reply_text = f"Пробач :( але ти не можеш узяти себе в заручники"
@@ -115,7 +127,7 @@ def hostage(message):
             bot.reply_to(message, reply_text)
 
     except Exception as e:
-        bot.reply_to(message, 'oooops')
+        bot.reply_to(message, 'oooops. Скоріш за все той кого ти хочеш узяти в підвал не в грі.')
 
 
 @bot.message_handler(commands=['profile'])
@@ -139,11 +151,14 @@ def echo_all(message):
     elif text == 'Прибирання':
         def predicate(event: Event):
             return event.name == text
+
         event: Event = next(filter(predicate, Event.objects.all()))
 
         def mapRes(result: EventResult):
             return result.probability
-        result: EventResult = random.choices(event.results.all(), weights=tuple(map(mapRes, event.results.all())), k=1)[0]
+
+        result: EventResult = random.choices(event.results.all(), weights=tuple(map(mapRes, event.results.all())), k=1)[
+            0]
 
         bot.send_message(chat_id, result.name)
     else:

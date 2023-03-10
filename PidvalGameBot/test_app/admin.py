@@ -10,7 +10,7 @@ class ProfileAdmin(admin.ModelAdmin):
     form = PlayerForm
 
     def get_inventory(self, obj):
-        return "\n".join([p.inventory for p in obj.inventory.all()])
+        return "\n".join([p.name for p in obj.inventory.all()])
 
 
 @admin.register(Message)

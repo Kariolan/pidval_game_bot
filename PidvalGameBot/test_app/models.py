@@ -221,6 +221,7 @@ class Type(models.Model):
         max_length=64,
     )
 
+
 class EventResult(models.Model):
     name = models.CharField(
         verbose_name="Name",
