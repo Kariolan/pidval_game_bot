@@ -229,10 +229,8 @@ class EventResult(models.Model):
     probability = models.FloatField(
         verbose_name="Probability",
     )
-    item = models.OneToOneField(
+    item = models.ManyToManyField(
         'Item',
         verbose_name="Item Found",
         blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
     )
