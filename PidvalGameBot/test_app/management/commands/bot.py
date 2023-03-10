@@ -13,7 +13,7 @@ import random
 # from telegram.ext import Updater
 # from telegram.utils.request import Request
 #
-from test_app.models import Player, Message, Event, EventResult, Type, Item, Stats
+from test_app.models import Player, Message, Event, EventResult, Type, Item, Stats, Basement
 
 bot = telebot.TeleBot(settings.TOKEN, parse_mode=None)
 
@@ -28,6 +28,13 @@ def send_welcome(message):
             'name': message.from_user.username,
         }
     )
+    b, _ = Basement.objects.get_or_create(
+        defaults={
+            'master': p,
+        }
+    )
+    p.basement = b
+    p.save()
 
     bot.send_message(chat_id, '''Ха-ха ти в підвалі версії alfa 0.1) 
     тут ти можеш:
@@ -36,7 +43,7 @@ def send_welcome(message):
     /count - переглянути кількість збережених повідомлень
     або просто написати, щось в бот (спробуй написати "Слава Україні! ;) )"
     ''')
-
+    
     generateCommands()
 
 def generateCommands():
@@ -64,15 +71,18 @@ def count_messages(message):
     bot.reply_to(message, reply_text)
 
 
-def player_hostage(player_name):
-    selected_player = Player.objects.filter(name=player_name).first()
-    h_player = selected_player.hostage
+def player_hostage(player: Player):
+    player_basement = player.basement
+    h_player = player_basement.hostage
     return h_player
 
 
-def player_master(hostage_name):
-    h_player = Player.objects.filter(name=hostage_name).first()
-    m_player = Player.objects.filter(hostage_id=h_player.pk).first()
+def player_master(hostage_player: Player):
+    basement_in_which_hostage = Basement.objects.filter(hostage_id=hostage_player.pk).first()
+    if basement_in_which_hostage == None:
+        m_player = None
+    else:
+        m_player = basement_in_which_hostage.master
     return m_player
 
 @bot.message_handler(commands=['help'])
@@ -157,29 +167,37 @@ def hostage(message):
     try:
         chat_id = message.chat.id
         h_name = message.text
-        hostage_master = player_master(h_name)
+        h_player = Player.objects.filter(name=h_name).first()
 
         p, _ = Player.objects.get_or_create(
             external_id=chat_id,
         )
 
-        if hostage_master == None and h_name != p.name and p != player_hostage(h_name):
-            p.hostage = Player.objects.filter(name=h_name)[0]
-            p.save()
-            print(Player.objects.filter(name=h_name)[0])
+        # для гравців в яких вже є профіль (початок)
+        b, _ = Basement.objects.get_or_create(
+            master=p
+        )
+        p.basement = b
+        p.save()
+        # для гравців в яких вже є профіль (кінець)
+
+        if player_master(h_player) == None and h_name != p.name and h_player != player_master(p):
+            b.hostage = h_player
+            b.save()
+            print(Basement.objects.filter(hostage_id=h_player.pk)[0])
             bot.send_message(chat_id, "Ти узяв в заручники " + h_name)
         elif h_name == p.name:
             reply_text = f"Пробач :( але ти не можеш узяти себе в заручники"
             bot.reply_to(message, reply_text)
-        elif p == player_hostage(h_name):
-            reply_text = f"Ти в підвалі цього гравця і не можеш закрити його/її свому підвалі"
+        elif h_player == player_master(p):
+            reply_text = f"Ти в підвалі цього гравця і не можеш закрити його/її в свому підвалі"
             bot.reply_to(message, reply_text)
         else:
             reply_text = f"Пробач :( але цей гравець в вже в іншому підвалі"
             bot.reply_to(message, reply_text)
 
     except Exception as e:
-        bot.reply_to(message, 'oooops')
+        bot.reply_to(message, 'oooops. Скоріш за все той кого ти хочеш узяти в підвал не в грі.')
 
 
 @bot.message_handler(commands=['profile'])
@@ -216,67 +234,3 @@ def echo_all(message):
 
 
 bot.infinity_polling()
-#
-# class Command(BaseCommand):
-#     help = 'Telegram-bot'
-#
-#     def log_errors(f):
-#
-#         def inner(*args, **kwargs):
-#             try:
-#                 return f(*args, **kwargs)
-#             except Exception as e:
-#                 error_message = f'Произошла ошибка: {e}'
-#                 print(error_message)
-#                 raise e
-#
-#         return inner
-#
-#     # @log_errors
-#     def do_echo(update: Update, context: CallbackContext):
-#         chat_id = update.message.chat_id
-#         text = update.message.text
-#
-#         # p, _ = Profile.objects.get_or_create(
-#         #     external_id=chat_id,
-#         #     defaults={
-#         #         'name': update.message.from_user.username,
-#         #     }
-#         # )
-#         # m = Message(
-#         #     profile=p,
-#         #     text=text,
-#         # )
-#         # m.save()
-#
-#         reply_text = f'Ваш ID = {chat_id}\n{text}'
-#         update.message.reply_text(
-#             text=reply_text,
-#         )
-#
-#     def handle(self, *args, **options):
-#         request = Request(
-#             con_pool_size=8,
-#             connect_timeout=0.5,
-#             read_timeout=1.0,
-#         )
-#         bot = Bot(
-#             request=request,
-#             token=settings.TOKEN,
-#         )
-#         print(bot.get_me())
-#
-#         updater = Updater(
-#             bot=bot,
-#             use_context=True,
-#         )
-#
-#         # 2 -- обработчики
-#
-#         message_handler = MessageHandler(Filters.text, self.do_echo)
-#         updater.dispatcher.add_handler(message_handler)
-#         # updater.dispatcher.add_handler(CommandHandler('count', do_count))
-#
-#         # 3 -- запустить бесконечную обработку входящих сообщений
-#         updater.start_polling()
-#         updater.idle()
