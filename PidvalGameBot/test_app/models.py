@@ -74,7 +74,7 @@ class Message(models.Model):
 
 
 class Basement(models.Model):
-    id = models.PositiveIntegerField(
+    id = models.AutoField(
         verbose_name="id",
         unique=True,
         primary_key=True,
@@ -101,6 +101,9 @@ class Basement(models.Model):
         related_name="%(class)s_in_basement",
     )
 
+    def __str__(self):
+        return f'{self.master}s basement '
+
 
 class Stats(models.Model):
     hp = models.PositiveIntegerField(
@@ -116,7 +119,7 @@ class Stats(models.Model):
 
 
 class Item(models.Model):
-    id = models.PositiveIntegerField(
+    id = models.AutoField(
         verbose_name="id",
         unique=True,
         primary_key=True,
@@ -139,7 +142,7 @@ class Item(models.Model):
 
 
 class Position(models.Model):
-    id = models.PositiveIntegerField(
+    id = models.AutoField(
         verbose_name="id",
         unique=True,
         primary_key=True,
@@ -159,7 +162,7 @@ class Position(models.Model):
 
 
 class Decoration(models.Model):
-    id = models.PositiveIntegerField(
+    id = models.AutoField(
         verbose_name="id",
         unique=True,
         primary_key=True,
@@ -182,7 +185,7 @@ class Decoration(models.Model):
 
 
 class Event(models.Model):
-    id = models.PositiveIntegerField(
+    id = models.AutoField(
         verbose_name="id",
         unique=True,
         primary_key=True,
@@ -211,7 +214,7 @@ class Event(models.Model):
 
 
 class Type(models.Model):
-    id = models.PositiveIntegerField(
+    id = models.AutoField(
         verbose_name="id",
         unique=True,
         primary_key=True,
