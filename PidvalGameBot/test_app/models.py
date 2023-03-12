@@ -41,6 +41,7 @@ class Player(models.Model):
         verbose_name="Hryvni",
         blank=True,
         null=True,
+        default=0,
     )
 
     def __str__(self):
@@ -106,6 +107,11 @@ class Basement(models.Model):
 
 
 class Stats(models.Model):
+    id = models.AutoField(
+        verbose_name="id",
+        unique=True,
+        primary_key=True,
+    )
     hp = models.PositiveIntegerField(
         verbose_name="HP",
         blank=True,

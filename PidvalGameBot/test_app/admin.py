@@ -28,7 +28,7 @@ class BasementAdmin(admin.ModelAdmin):
 
 @admin.register(Stats)
 class StatsAdmin(admin.ModelAdmin):
-    list_display = ('hp', 'energy')
+    list_display = ('id', 'hp', 'energy')
 
 
 @admin.register(Item)

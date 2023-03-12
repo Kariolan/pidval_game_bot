@@ -33,6 +33,10 @@ def send_welcome(message):
             'master': p,
         }
     )
+    if p.stats == None:
+        s = Stats(hp = 100, energy = 100)
+        s.save()
+        p.stats = s
     p.basement = b
     p.save()
 
@@ -99,7 +103,10 @@ def help(message):
 
 @bot.message_handler(commands=['basement'])
 def showMyBasement(message):
-    bot.send_message(message.chat.id, "Message about basement")
+    chatID = message.chat.id
+    p, _ = Player.objects.get_or_create(external_id=chatID)
+    hostage = player_hostage(p)
+    bot.send_message(chatID, f"В Вашому підвалі сидить {hostage}")
 
 @bot.message_handler(commands=['event'])
 def showEvents(message):
@@ -116,14 +123,13 @@ def generateEventMarkup():
     events = list(filter(predicate, Event.objects.all()))
     
     for event in events:
-        markup.add(InlineKeyboardButton(event.name, callback_data=event.name))
+        markup.add(InlineKeyboardButton(event.name, callback_data=f"event.{event.name}"))
     return markup
 
-@bot.callback_query_handler(func=lambda call: True)
+@bot.callback_query_handler(func=lambda call: "event." in call.data)
 def eventQuery(query):
-    eventName = query.data
+    eventName = query.data.replace("event.", "")
     chatID = query.message.chat.id
-    p, _ = Player.objects.get_or_create(external_id=chatID)
 
     event = next(filter(lambda event: event.name == eventName, Event.objects.all()))
 
@@ -136,10 +142,10 @@ def eventQuery(query):
         randomItem = random.choice(result.item.all())
         type = randomItem.type
 
-        if type != None and type.name != 'Wisdom':
+        if type == None:
             addItemToInventory(chatID, randomItem)
             resultString = resultString + " " + randomItem.name
-        else:
+        elif type.name == 'Wisdom':
             resultString = resultString + "\n" + randomItem.description
 
     bot.send_message(chatID, resultString)
@@ -148,14 +154,20 @@ def addItemToInventory(chatID, item: Item):
     p, _ = Player.objects.get_or_create(external_id=chatID)
 
     if item.id == 0:
-        if p.hryvni is None:
+        if p.hryvni == None:
             p.hryvni = 1
         else:
             p.hryvni += 1
     else:
         p.inventory.add(item)
     
-    p.save
+    p.save()
+
+@bot.message_handler(commands=['clear'])
+def clear(message):
+    p, _ = Player.objects.get_or_create(external_id=message.chat.id)
+    p.inventory.clear()
+    p.save()
 
 @bot.message_handler(commands=['take_hostage'])
 def take_hostage(message):
@@ -205,10 +217,54 @@ def profile_info(message):
     chat_id = message.chat.id
     p, _ = Player.objects.get_or_create(external_id=chat_id)
     pStats: Stats = p.stats
-    pHryvni = p.hryvni
+    if pStats == None:
+        pStats = Stats(hp = 100, energy = 100)
+        pStats.save()
+        p.stats = pStats
+        p.save()
+    pHryvni = p.hryvni or 0
     message = f"Ваш профіль: {p.name}\nЗдоров'я: {pStats.hp}\nЕнергія: {pStats.energy}\nГривні: {pHryvni}"
-    bot.send_message(chat_id, message)
+    bot.send_message(chat_id, message, reply_markup=generateProfileMarkup())
 
+def generateProfileMarkup():
+    markup = InlineKeyboardMarkup()
+    markup.row_width = 2
+    markup.add(InlineKeyboardButton('Мій підвал', callback_data="profile.basement"), 
+    InlineKeyboardButton('Мій інвентар', callback_data="profile.inventory"))
+    return markup
+
+@bot.callback_query_handler(func=lambda call: "profile." in call.data)
+def profileHandler(query):
+    chatID = query.message.chat.id
+    eventName = query.data.replace("profile.", "")
+    if eventName == "basement":
+        showMyBasement(query.message)
+    elif eventName == "inventory":
+        p, _ = Player.objects.get_or_create(external_id=chatID)
+        inventory = p.inventory.all() 
+        message = "У Вашому інвентарі"
+        if inventory:
+            inventoryStr = '\n'.join(map(lambda item: item.name, inventory)) 
+            message = ':\n'.join([message, inventoryStr])
+        else: 
+            message = ' '.join([message, "поки що пусто 😔"])
+        bot.send_message(chatID, message, reply_markup=generateInventoryMarkup(inventory))
+
+def generateInventoryMarkup(inventory):
+    markup = InlineKeyboardMarkup()
+    markup.row_width = 1
+    for item in inventory:
+        markup.add(InlineKeyboardButton(item.name, callback_data=f"inventory.{item.name}"))
+    return markup
+
+@bot.callback_query_handler(func=lambda call: "inventory." in call.data)
+def showInventoryItem(query):
+    itemName = query.data.replace("inventory.", "")
+    chatID = query.message.chat.id
+    p, _ = Player.objects.get_or_create(external_id=chatID)
+    item = next(filter(lambda item: item.name == itemName, p.inventory.all()))
+    message = f"{itemName}:\n{item.description}"
+    bot.send_message(query.message.chat.id, message)
 
 @bot.message_handler(func=lambda m: True)
 def echo_all(message):
