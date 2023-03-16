@@ -103,7 +103,11 @@ class Basement(models.Model):
     )
 
     def __str__(self):
-        return f'{self.master}s basement '
+        return f'{self.id} | host: {self.hostage}'
+
+    class Meta:
+        verbose_name = 'Підвал'
+        verbose_name_plural = 'Підвали'
 
 
 class Stats(models.Model):
@@ -122,6 +126,40 @@ class Stats(models.Model):
         blank=True,
         null=True,
     )
+    mental = models.IntegerField(
+        verbose_name="Mental",
+        blank=True,
+        null=True,
+    )
+    strength = models.PositiveIntegerField(
+        verbose_name="Energy",
+        blank=True,
+        null=True,
+    )
+    reaction = models.PositiveIntegerField(
+        verbose_name="Reaction",
+        blank=True,
+        null=True,
+    )
+    luck = models.PositiveIntegerField(
+        verbose_name="Luck",
+        blank=True,
+        null=True,
+    )
+    armor = models.PositiveIntegerField(
+        verbose_name="Armor",
+        blank=True,
+        null=True,
+    )
+    intelligence = models.PositiveIntegerField(
+        verbose_name="Intelligence",
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = 'Характеристики'
+        verbose_name_plural = 'Характеристики'
 
 
 class Item(models.Model):
@@ -146,6 +184,13 @@ class Item(models.Model):
         verbose_name='Description'
     )
 
+    def __str__(self):
+        return f'{self.name}'
+
+    class Meta:
+        verbose_name = 'Предмет'
+        verbose_name_plural = 'Предмети'
+
 
 class Position(models.Model):
     id = models.AutoField(
@@ -165,6 +210,13 @@ class Position(models.Model):
         on_delete=models.SET_NULL,
         related_name="%(class)s_on_position",
     )
+
+    def __str__(self):
+        return f'{self.name}'
+
+    class Meta:
+        verbose_name = 'Позиція'
+        verbose_name_plural = 'Позиції'
 
 
 class Decoration(models.Model):
@@ -188,6 +240,13 @@ class Decoration(models.Model):
     description = models.TextField(
         verbose_name='Description'
     )
+
+    def __str__(self):
+        return f'{self.name}'
+
+    class Meta:
+        verbose_name = 'Декорація'
+        verbose_name_plural = 'Декорації'
 
 
 class Event(models.Model):
@@ -218,6 +277,13 @@ class Event(models.Model):
         related_name="%(class)s_results",
     )
 
+    def __str__(self):
+        return f'{self.type}|{self.name}'
+
+    class Meta:
+        verbose_name = 'Подія'
+        verbose_name_plural = 'Події'
+
 
 class Type(models.Model):
     id = models.AutoField(
@@ -229,6 +295,9 @@ class Type(models.Model):
         verbose_name="Name",
         max_length=64,
     )
+
+    def __str__(self):
+        return f'{self.name}'
 
 
 class EventResult(models.Model):
@@ -244,3 +313,6 @@ class EventResult(models.Model):
         verbose_name="Item Found",
         blank=True,
     )
+
+    def __str__(self):
+        return f'{self.name}'

@@ -7,7 +7,7 @@ from .models import * #Message, Player, Basement, Stats, Item, Position, Decorat
 @admin.register(Player)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('id', 'external_id', 'name', 'hostage', 'basement', 'get_inventory', 'stats', 'hryvni')
-    form = PlayerForm
+    # form = PlayerForm
 
     def get_inventory(self, obj):
         return "\n".join([p.name for p in obj.inventory.all()])
